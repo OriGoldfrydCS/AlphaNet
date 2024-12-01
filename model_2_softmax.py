@@ -22,9 +22,9 @@ def load_csv_data(file_path):
         images (ndarray): Array of image data (features).
         labels (ndarray): Array of labels corresponding to the images.
     """
-    data = pd.read_csv(file_path, header=None)      # Read the CSV file without column headers
-    labels = data.iloc[:, 0].to_numpy()             # First column is the label
-    images = data.iloc[:, 1:].to_numpy()            # Remaining columns are the image data
+    data = pd.read_csv(file_path, header=None)     # Read the CSV file without column headers
+    labels = data.iloc[:, 0].to_numpy()            # First column is the label
+    images = data.iloc[:, 1:].to_numpy()           # Remaining columns are the image data
     return images, labels
 
 # Define paths to training and testing datasets
