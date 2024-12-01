@@ -5,7 +5,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, log_loss
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, log_loss, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 from datetime import datetime
 import time
 
@@ -85,7 +87,7 @@ early_stop_counter = 0          # Counter to track epochs without improvement in
 
 start_time = time.time()        # Record the start time of training
 
-print(f"{'='*30}\nTraining model with early stopping...\n{'='*30}")
+print(f"Training model with early stopping...")
 
 # Training loop
 for epoch in range(epochs):
@@ -161,7 +163,7 @@ for epoch in range(epochs):
 
     # Trigger early stopping if no improvement for 'patience' epochs
     if early_stop_counter >= patience:
-        print(f"{'='*30}\nEarly stopping triggered after {epoch+1} epochs.\n")
+        print(f"\nEarly stopping triggered after {epoch+1} epochs.")
         break
 
 # Final train metrics
@@ -207,14 +209,24 @@ test_metrics = {
 }
 
 # Display results
-print(f"{'='*30}\nTest Accuracy: {test_metrics['Accuracy']:.4f}")
+print(f"\nSoftmax Model Performance:")
+print(f"Test Accuracy: {test_metrics['Accuracy']:.4f}")
 print(f"Test Precision: {test_metrics['Precision']:.4f}")
 print(f"Test Recall: {test_metrics['Recall']:.4f}")
 print(f"Test F1-Score: {test_metrics['F1-Score']:.4f}")
 print(f"Test Log Loss: {test_metrics['Log Loss']:.4f}")
 
+# Plot confusion matrix
+conf_matrix = confusion_matrix(y_true_test, y_pred_test)
+plt.figure(figsize=(10, 8))
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues")
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("True")
+plt.show()
+
 # Save metrics to .txt
-output_file = f"runs_SM_model/{run_name}.txt"
+output_file = f"runs/runs_SM_model/{run_name}.txt"
 with open(output_file, "w") as f:
     f.write(f"Run Name: {run_name}\n")
     f.write(f"Date: {datetime.now()}\n")
@@ -229,8 +241,6 @@ with open(output_file, "w") as f:
     f.write("\nTest Metrics:\n")
     for key, value in test_metrics.items():
         f.write(f"  {key}: {value:.4f}\n")
-
-print(f"\nMetrics saved to {output_file}")
 
 # Close TensorBoard writer
 writer.close()
