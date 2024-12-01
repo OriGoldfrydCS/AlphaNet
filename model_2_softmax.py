@@ -8,8 +8,8 @@ import seaborn as sns
 # Load data from CSV files
 def load_csv_data(file_path):
     data = pd.read_csv(file_path, header=None)
-    labels = data.iloc[:, 0].to_numpy()     # First column is the label
-    images = data.iloc[:, 1:].to_numpy()    # Remaining columns are the image data
+    labels = data.iloc[:, 0].to_numpy()      # First column is the label
+    images = data.iloc[:, 1:].to_numpy()     # Remaining columns are the image data
     return images, labels
 
 # Load training and testing datasets
