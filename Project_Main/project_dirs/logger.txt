@@ -1,0 +1,84 @@
+_________________________
+Final cleaned output: THE VILLAGE WAS MENTIONED IN THE DOMESDAY BOOK.
+Ground Truth Sentence: THE VILLAGE WAS MENTIONED IN THE DOMESDAY BOOK.
+Accuracy for sentence_1.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: THIS GOODBYE IS RECORDED IN DISCOURS DADIEU AUX MINISTRES.
+Ground Truth Sentence: THIS GOODBYE IS RECORDED IN DISCOURS DADIEU AUX MINISTRES.
+Accuracy for sentence_10.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: HIS NEPHEW ROBERTO ABBADO IS ALSO A CONDUCTOR.
+Ground Truth Sentence: HIS NEPHEW ROBERTO ABBADO IS ALSO A CONDUCTOR.
+Accuracy for sentence_11.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: IT LIVES ONLY IN THE GULF OF CALIFORNIA.
+Ground Truth Sentence: IT LIVES ONLY IN THE GULF OF CALIFORNIA.
+Accuracy for sentence_12.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: MITCHELL IS A CITY OF IOWA IN THE UNITED STATES.
+Ground Truth Sentence: MITCHELL IS A CITY OF IOWA IN THE UNITED STATES.
+Accuracy for sentence_13.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: GARNAVILLO IS A CITY OF IOWA IN THE UNITED STATES.
+Ground Truth Sentence: GARNAVILLO IS A CITY OF IOWA IN THE UNITED STATES.
+Accuracy for sentence_14.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: SCHAUNARD LEAVES QUIETLY TO GIVE MIMI AND RODOLFO TIME TOGETHER.
+Ground Truth Sentence: SCHAUNARD LEAVES QUIETLY TO GIVE MIMI AND RODOLFO TIME TOGETHER.
+Accuracy for sentence_2.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: JOLLEY IS A CITY OF IOWA IN THE UNITED STATES.
+Ground Truth Sentence: JOLLEY IS A CITY OF IOWA IN THE UNITED STATES.
+Accuracy for sentence_3.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: STALLONE HAS BEEN MARRIED THREE TIMES.
+Ground Truth Sentence: STALLONE HAS BEEN MARRIED THREE TIMES.
+Accuracy for sentence_4.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: THE CENTROSOME REPLICATES DURING THE INTERPHASE OF THE CELL CYCLE.
+Ground Truth Sentence: THE CENTROSOME REPLICATES DURING THE INTERPHASE OF THE CELL CYCLE.
+Accuracy for sentence_5.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: LAGNIEU IS A COMMUNE.
+Ground Truth Sentence: LAGNIEU IS A COMMUNE.
+Accuracy for sentence_6.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: ESBJERG IS A CITY IN DENMARK ON THE PENINSULA JUTLAND.
+Ground Truth Sentence: ESBJERG IS A CITY IN DENMARK ON THE PENINSULA JUTLAND.
+Accuracy for sentence_7.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: MOGADISHU IS A COMMERCIAL AND FINANCIAL CENTER FOR SOMALIA.
+Ground Truth Sentence: MOGADISHU IS A COMMERCIAL AND FINANCIAL CENTER FOR SOMALIA.
+Accuracy for sentence_8.png: 1.00
+_________________________
+
+_________________________
+Final cleaned output: BOTH LOUIS AND MARY COOKED.
+Ground Truth Sentence: BOTH LOUIS AND MARY COOKED.
+Accuracy for sentence_9.png: 1.00
+_________________________
+
