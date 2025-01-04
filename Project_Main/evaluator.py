@@ -3,7 +3,7 @@ import os
 
 class Evaluation:
     """
-    Handles the evaluation process for the pipeline.
+    This class handles the evaluation process for the pipeline.
     """
     def __init__(self, ground_truth_csv):
         self.overall_correct = 0
