@@ -3,88 +3,133 @@ import os
 import sys
 import shutil
 from PIL import Image, ImageDraw, ImageFont
-from Main_Pipeline import main  
+from Main_Pipeline import main
 
 class GradioInterface:
     def __init__(self):
+        """
+        Initializes the GradioInterface by setting up directory paths and available fonts.
+        Ensures that all necessary directories exist.
+        """
+        # Define directory paths for various stages of processing
         self.input_dir = "Project_Main/project_dirs/input_gui/"
         self.working_dir = "Project_Main/project_dirs/working_gui_dir/"
         self.output_dir = "Project_Main/project_dirs/output_gui/"
-        self.preview_dir = "Project_Main/project_dirs/preview_gui/"  
-        self.generated_dir = "Project_Main/project_dirs/generated_gui/"  
+        self.preview_dir = "Project_Main/project_dirs/preview_gui/"
+        self.generated_dir = "Project_Main/project_dirs/generated_gui/"
 
+        # Create directories if they do not exist
         os.makedirs(self.input_dir, exist_ok=True)
         os.makedirs(self.working_dir, exist_ok=True)
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.preview_dir, exist_ok=True)
         os.makedirs(self.generated_dir, exist_ok=True)
 
+        # List of included fonts available for generating images from text
+        self.included_fonts = [
+            "couri.ttf", "palab.ttf", "verdanab.ttf", "consolai.ttf", "ariali.ttf",
+            "consola.ttf", "arialbi.ttf", "arial.ttf", "l_10646.ttf", "verdanaz.ttf",
+            "consolab.ttf", "ahronbd.ttf", "malgunsl.ttf", "AniMeMatrix-MB_EN.ttf",
+            "segoeui.ttf", "seguibl.ttf", "Nirmala.ttf", "lucon.ttf", "ntailu.ttf",
+            "segoeuil.ttf", "taile.ttf", "seguiemj.ttf", "consolaz.ttf", "malgun.ttf",
+            "LeelUIsl.ttf", "seguihis.ttf", "NirmalaS.ttf", "gadugi.ttf", "segoeuiz.ttf",
+            "gisha.ttf", "seguisb.ttf", "LeelawUI.ttf", "phagspa.ttf", "seguisym.ttf",
+            "SegUIVar.ttf", "trebucit.ttf", "segoeuisl.ttf", "mmrtext.ttf", "ebrima.ttf",
+            "lvnmbd.ttf"
+        ]
+
     def resize_image(self, image_path, size=(256, 256)):
         """
-        Resize an image to fit within the specified size while maintaining aspect ratio.
+        Resizes an image to fit within the specified size while maintaining aspect ratio.
         Pads the image with a white background if necessary and ensures it is in RGB mode.
+
+        Parameters:
+        - image_path (str): Path to the original image.
+        - size (tuple): Desired size as (width, height).
+
+        Returns:
+        - str or None: Path to the resized image in the preview directory or None if an error occurs.
         """
         try:
             with Image.open(image_path) as img:
                 # Convert image to RGB to preserve color information
                 img = img.convert("RGB")
-                
+
                 # Maintain aspect ratio using the Resampling.LANCZOS filter
                 img.thumbnail(size, Image.Resampling.LANCZOS)
-                
+
                 # Create a new image with a white background
                 new_img = Image.new("RGB", size, (255, 255, 255))
-                
+
                 # Calculate position to center the thumbnail
                 paste_position = (
                     (size[0] - img.width) // 2,
                     (size[1] - img.height) // 2
                 )
-                
+
+                # Paste the resized image onto the white background
                 new_img.paste(img, paste_position)
-                
+
                 # Save the resized image to the preview directory
                 preview_path = os.path.join(self.preview_dir, os.path.basename(image_path))
-                new_img.save(preview_path, format="PNG") 
-                
-                print(f"Resized image saved to: {preview_path}") 
-                
+                new_img.save(preview_path, format="PNG")
+
+                print(f"Resized image saved to: {preview_path}")
+
                 return preview_path
         except Exception as e:
             print(f"Error resizing image {image_path}: {e}")
             return None
 
     def process_images(self, images):
-        """Process one or more images through the pipeline."""
-        # Ensure 'images' is always a list
+        """
+        Processes one or more images through the main pipeline.
+        Copies images to the input directory, runs the pipeline, and gathers the output.
+
+        Parameters:
+        - images (list or str or tuple): List of image file paths or a single image file path.
+
+        Returns:
+        - tuple: Combined processed text and list of output text file paths.
+        """        # Ensure 'images' is always a list
         if not isinstance(images, list):
             images = [images]
 
-        # Save the uploaded images to the input directory
+        # List to keep track of successfully copied image file paths
         saved_files = []
         for img in images:
-            if img:  # Check if the file is not None
-                file_path = os.path.join(self.input_dir, os.path.basename(img))
-                try:
-                    shutil.copy(img, file_path)  # Use copy for simplicity
-                    saved_files.append(file_path)
-                    print(f"Copied uploaded image to: {file_path}")  
-                except Exception as e:
-                    print(f"Error copying uploaded image {img} to {file_path}: {e}")
+            if img:     # Check if the file is not None
+                # Handle both string paths and tuples (in case of Gradio returning tuples)
+                if isinstance(img, tuple):
+                    img_path = img[0]  # Assuming the first element is the filepath
+                else:
+                    img_path = img
 
-        print(f"Processing {len(saved_files)} uploaded images...")
+                if isinstance(img_path, str):
+                    # Define the destination path in the input directory
+                    file_path = os.path.join(self.input_dir, os.path.basename(img_path))
+                    try:
+                        shutil.copy(img_path, file_path)  # Copy the image to the input directory
+                        saved_files.append(file_path)
+                        print(f"Copied image to: {file_path}")
+                    except Exception as e:
+                        print(f"Error copying image {img_path} to {file_path}: {e}")
+                else:
+                    print(f"Unsupported image format: {img_path}")
+
+        print(f"Processing {len(saved_files)} images...")
 
         # Run the main pipeline in 'GUI mode' (mode=1)
         main(mode=1)
 
-        # Gather output files
+        # List to hold paths to the generated output text files
         output_files = []
         for file_name in os.listdir(self.output_dir):
-            if file_name.endswith(".txt"):
+            if file_name.endswith(".txt"):      # Only consider text files
                 full_path = os.path.join(self.output_dir, file_name)
                 output_files.append(full_path)
 
-        # Create a multiline string that contains text for each .txt file
+        # Combine the contents of all output text files into a single string
         output_str = ""
         for txt_file_path in output_files:
             try:
@@ -98,7 +143,10 @@ class GradioInterface:
         return output_str, output_files
 
     def clear_directories(self):
-        """Clear input, working, output, preview, and generated directories using force deletion."""
+        """
+           Clears the input, working, output, preview, and generated directories by forcefully deleting their contents.
+           Recreates the directories after deletion to ensure they exist for future operations.
+           """
         def force_delete_directory(directory):
             try:
                 shutil.rmtree(directory, ignore_errors=False)  # Raises an error if it fails
@@ -108,22 +156,29 @@ class GradioInterface:
             except Exception as e:
                 print(f"Error clearing directory {directory}. Reason: {e}")
 
+        # Iterate through all directories and clear them
         for directory in [self.input_dir, self.working_dir, self.output_dir, self.preview_dir, self.generated_dir]:
-            # Ensure the directory is recreated after deletion
+            # Delete the directory and its contents
             force_delete_directory(directory)
+            # Recreate the directory to ensure it exists for future use
             os.makedirs(directory, exist_ok=True)
 
     def clear_uploaded_and_generated_images(self):
-        """Clear uploaded images and generated word images from input_dir and generated_dir."""
+        """
+         Clears uploaded images from the input directory and generated images from the generated directory.
+
+         Returns:
+         - str: Success or error message indicating the result of the operation.
+         """
         try:
-            # Clear input_dir
+            # Clear all files in the input directory
             for filename in os.listdir(self.input_dir):
                 file_path = os.path.join(self.input_dir, filename)
                 if os.path.isfile(file_path):
                     os.remove(file_path)
                     print(f"Deleted uploaded/generated image: {file_path}")
 
-            # Clear generated_dir
+            # Clear all files in the generated directory
             for filename in os.listdir(self.generated_dir):
                 file_path = os.path.join(self.generated_dir, filename)
                 if os.path.isfile(file_path):
@@ -137,98 +192,166 @@ class GradioInterface:
             return error_msg
 
     def get_available_fonts(self):
-        """Retrieve a list of available font files from C:/Windows/Fonts."""
-        fonts_dir = "C:/Windows/Fonts/"
-        available_fonts = []
-        try:
-            for file in os.listdir(fonts_dir):
-                if file.lower().endswith(('.ttf', '.otf')):
-                    available_fonts.append(file)
-        except Exception as e:
-            print(f"Error accessing fonts directory: {e}")
-        return available_fonts
+        """
+        Retrieves the list of available fonts for generating images from text.
 
-    def generate_image_from_text(self, text, font_name, image_size=(256, 256), font_size=40):
+        Returns:
+        - list: List of font filenames.
         """
-        Generate an image from the given text using the specified font.
-        Returns a tuple: (success: bool, image_path or error_message: str)
+        return self.included_fonts
+
+    def generate_image_from_text(self, text, font_name, image_size=(256, 256), font_size=25):
+        """
+        Generates an image from the provided text using the specified font.
+
+        Parameters:
+        - text (str): The sentence to convert into an image.
+        - font_name (str): The filename of the font to use.
+        - image_size (tuple): Size of the generated image as (width, height).
+        - font_size (int): Size of the font.
+
+        Returns:
+        - tuple: (success_flag (bool), image_path or error message (str))
         """
         try:
-            fonts_dir = "C:/Windows/Fonts/"
-            font_path = os.path.join(fonts_dir, font_name)
-            
-            # Check if the font file exists
-            if not os.path.isfile(font_path):
-                error_msg = f"Font file not found: {font_path}"
+            # Check if the selected font is in the list of included fonts
+            if font_name not in self.included_fonts:
+                error_msg = f"Font not allowed: {font_name}"
                 print(error_msg)
                 return False, error_msg
-            
-            # Load the font
-            font = ImageFont.truetype(font_path, font_size)
 
-            # Create a new image with white background
-            img = Image.new('RGB', image_size, color=(255, 255, 255))
+            # Load the specified TrueType font
+            font = ImageFont.truetype(font_name, font_size)
+
+            # Define extra padding to be added on both sides of the text
+            extra_padding = 50
+            space_width = font.getbbox(" ")[2] * 2
+
+            # Calculate the total width required for the text
+            text_width = sum(
+                font.getbbox(char)[2] - font.getbbox(char)[0] if char != " " else space_width for char in text)
+
+            # Calculate the total width of the image by adding padding on both sides
+            padded_width = text_width + extra_padding * 2
+
+            # Create a new white RGB image with the calculated width and specified height
+            img = Image.new('RGB', (padded_width, image_size[1]), color=(255, 255, 255))
             d = ImageDraw.Draw(img)
 
-            # Calculate text bounding box
-            bbox = d.textbbox((0, 0), text, font=font)
-            text_width = bbox[2] - bbox[0]
-            text_height = bbox[3] - bbox[1]
-            position = ((image_size[0] - text_width) // 2, (image_size[1] - text_height) // 2)
+            # Initialize the starting position for drawing text
+            x_text = extra_padding
+            y_text = (image_size[1] - font.getbbox(text)[3]) // 2
 
-            # Draw text onto image
-            d.text(position, text, font=font, fill=(0, 0, 0))
+            # Iterate through each character in the text to draw it on the image
+            for char in text:
+                if char == " ":
+                    x_text += space_width  # Move cursor for space
+                else:
+                    # Draw the character at the current position
+                    d.text((x_text, y_text), char, font=font, fill=(0, 0, 0))
+                    # Update the x position based on the width of the character
+                    x_text += font.getbbox(char)[2] - font.getbbox(char)[0]
 
-            # Save the generated image
+            # Save the image
             image_filename = f"generated_{len(os.listdir(self.generated_dir)) + 1}.png"
             image_path = os.path.join(self.generated_dir, image_filename)
             img.save(image_path, format="PNG")
 
-            print(f"Generated image saved to: {image_path}")  
-
             return True, image_path
+
         except Exception as e:
             error_msg = f"Error generating image from text '{text}': {e}"
-            print(error_msg) 
+            print(error_msg)
             return False, error_msg
 
-    def generate_word_image(self, text, font_name):
-        if not text.strip():
-            return "⚠️ Please enter a word.", None
-        
-        # Convert text to uppercase to enforce capital letters
-        text = text.upper()
-        print(f"Converted input text to uppercase: {text}")  
+    def wrap_text(self, text, font, max_width):
+        """
+         Wraps the input text into multiple lines so that each line does not exceed the specified maximum width.
 
+         Parameters:
+         - text (str): The text to wrap.
+         - font (ImageFont): The font used to measure text width.
+         - max_width (int): The maximum width allowed for each line.
+
+         Returns:
+         - list: List of wrapped lines.
+         """
+        words = text.split()
+        lines = []
+        current_line = words[0]
+
+        for word in words[1:]:
+            test_line = f"{current_line} {word}"
+            # Check if the width of the test line exceeds the maximum width
+            if font.getbbox(test_line)[2] <= max_width:
+                current_line = test_line         # Append the word to the current line
+            else:
+                lines.append(current_line)       # Add the current line to lines
+                current_line = word              # Start a new line with the current word
+
+        lines.append(current_line)               # Add the last line to lines
+        return lines
+
+    def generate_word_image(self, text, font_name):
+        """
+           Generates an image from the provided text and copies it to the input directory for processing.
+
+           Parameters:
+           - text (str): The sentence to convert into an image.
+           - font_name (str): The filename of the font to use.
+
+           Returns:
+           - tuple: (status_message (str), list of image paths or None)
+           """
+        # If the input text is empty or contains only whitespace, prompt the user
+        if not text.strip():
+            return "⚠️ Please enter a sentence.", None
+
+        # Convert text to uppercase
+        text = text.upper()
+        print(f"Converted input text to uppercase: {text}")
+
+        # Generate the image from text using the specified font
         success, result = self.generate_image_from_text(text, font_name)
-        
+
         if success:
             generated_image_path = result
-            # Copy the generated image to input_dir for processing
             destination_path = os.path.join(self.input_dir, os.path.basename(generated_image_path))
             try:
+                # Copy the generated image to the input directory for processing
                 shutil.copy(generated_image_path, destination_path)
-                print(f"Copied generated image to: {destination_path}")  
+                print(f"Copied generated image to: {destination_path}")
                 # Return status and updated gallery
                 return "✅ Image generated successfully!", [destination_path]
             except Exception as e:
                 error_msg = f"Error copying generated image: {e}"
-                print(error_msg)  
+                print(error_msg)
                 return "✅ Image generated successfully!", None
         else:
             # result contains the error message
             return f"❌ Failed to generate image. {result}", None
 
     def launch(self):
-        """Launch the Gradio interface."""
-
+        """
+        Sets up and launches the Gradio interface with multiple tabs for uploading, generating, processing images,
+        and managing directories. Applies custom CSS for styling and defines the layout and interactions.
+        """
         def clear_directories_wrapper():
+            """
+            Wrapper function to clear all relevant directories and return a success message.
+            """
             self.clear_directories()
             return "✅ Directories cleared successfully!"
 
         def preview_images(file_paths):
             """
-            Resize images for uniform preview and return PIL Image objects.
+            Resizes uploaded images for uniform preview and returns a list of resized image paths.
+
+            Parameters:
+            - file_paths (list or str): List of file paths or a single file path.
+
+            Returns:
+            - list: List of resized image paths.
             """
             if not isinstance(file_paths, list):
                 file_paths = [file_paths]
@@ -240,28 +363,47 @@ class GradioInterface:
                     if resized_path:
                         try:
                             with Image.open(resized_path) as img:
-                                preview_images.append(img.copy())  # Append a copy to avoid closed file issues
-                                print(f"Added image to preview: {resized_path}")  
+                                preview_images.append(img.copy())   # Append a copy to avoid closed file issues
+                                print(f"Added image to preview: {resized_path}")
                         except Exception as e:
                             print(f"Error loading resized image {resized_path}: {e}")
 
             return preview_images
 
         def clear_outputs():
-            """Clear the Processed Output textbox and Download Processed Files."""
+            """
+            Clears the processed output textbox and the download files component.
+
+            Returns:
+            - tuple: Empty string and empty list to reset the UI components.
+            """
             return "", []
 
-        # Wrapper for generating images with uppercase enforcement
         def generate_word_image_wrapper(text, font_name):
+            """
+              Wrapper function to generate a word image and update the gallery.
+
+              Parameters:
+              - text (str): The sentence to convert into an image.
+              - font_name (str): The filename of the font to use.
+
+              Returns:
+              - tuple: Status message and list of image paths.
+              """
             status_msg, updated_gallery = self.generate_word_image(text, font_name)
             return status_msg, updated_gallery
 
-        # Function to handle the Clean Images button
         def clean_uploads_and_generated_images():
+            """
+              Clears uploaded and generated images and returns a status message along with resetting the gallery.
+
+              Returns:
+              - tuple: Status message and empty list to reset the gallery.
+              """
             message = self.clear_uploaded_and_generated_images()
             return message, []
 
-        # Custom CSS for styling
+        # Custom CSS for styling the Gradio interface
         custom_css = """
         <style>
             /* General Styles */
@@ -412,15 +554,16 @@ class GradioInterface:
         """
 
         with gr.Blocks() as interface:
-            # Inject custom CSS
+            # Inject custom CSS to style the interface
             gr.HTML(custom_css)
 
             # Header Section
             with gr.Row():
                 with gr.Column(scale=1):
-                    # Optional: To add a logo image here
-                    pass  
+                    # Placeholder for an optional logo image
+                    pass
                 with gr.Column(scale=3):
+                    # Display the main header using Markdown
                     gr.Markdown(
                         """
                         <div class="header">
@@ -430,125 +573,246 @@ class GradioInterface:
                         elem_id="header"
                     )
 
-            # Upload & Process Tab
+            ########################################################
+            #  1) TAB FOR UPLOADING IMAGES & PROCESSING THEM
+            ########################################################
+            # Title for the Upload & Process tab
             with gr.Tab("Upload & Process"):
                 gr.Markdown(
                     """
                     <div class="tab-title">
-                        📂 Upload your image(s), generate it and process them
+                        📂 Upload your image(s) and process them
                     </div>
                     """,
                     elem_id="upload-title"
                 )
+
                 with gr.Row():
                     with gr.Column(scale=2):
                         # File Upload Section
                         upload_box = gr.File(
-                            file_types=[".png"], 
-                            label="📁 Upload Image(s)", 
-                            type="filepath", 
-                            file_count="multiple", 
-                            interactive=True
+                            file_types=[".png"],             # Restrict uploads to PNG files
+                            label="📁 Upload Image(s)",      # Label for the upload component
+                            type="filepath",                 # Return file paths instead of raw data
+                            file_count="multiple",           # Allow multiple file uploads
+                            interactive=True                 # Make the component interactive
                         )
 
                         # Use a Gallery to preview multiple images
                         image_gallery = gr.Gallery(
-                            label="🖼️ Images Preview",
-                            show_label=True,
-                            columns=2,  # Number of columns in the gallery
-                            elem_id="gallery"
+                            label="🖼️ Images Preview",      # Label for the gallery
+                            show_label=True,                # Display the label
+                            columns=2,                      # Number of columns in the gallery
+                            elem_id="gallery"               # HTML element ID for styling
                         )
 
                         # Update the Gallery when files change
                         upload_box.change(
-                            fn=preview_images, 
-                            inputs=upload_box, 
-                            outputs=image_gallery
+                            fn=preview_images,              # Function to call on change
+                            inputs=upload_box,              # Input is the upload box
+                            outputs=image_gallery           # Output is the image gallery
+                        )
+
+                        # Clean Button under Image Preview
+                        clean_button = gr.Button(
+                            "🧼 Clean Images",               # Button label
+                            elem_id="clean-button",          # HTML element ID for styling
+                            elem_classes="button-secondary") # CSS class for secondary styling
+
+                        # Textbox to display the status of the clean operation
+                        clean_status = gr.Textbox(
+                            label="🧹 Clean Status",         # Label for the textbox
+                            interactive=False,               # Make the textbox read-only
+                            value="",                        # Initial value is empty
+                            lines=1,                         # Number of lines in the textbox
+                            elem_id="clean_status"           # HTML element ID for styling
+                        )
+
+                        # Connect the Clean Images button to its functionality
+                        clean_button.click(
+                            fn=clean_uploads_and_generated_images,      # Function to call on click
+                            inputs=None,                                # No inputs required
+                            outputs=[clean_status, image_gallery],      # Outputs to update
+                        )
+
+                    with gr.Column(scale=1):
+                        # Process Images Button
+                        process_button = gr.Button(
+                            "🚀 Process Images",              # Button label
+                            elem_id="process-button",         # HTML element ID for styling
+                            elem_classes="button-primary")    # CSS class for secondary styling
+
+                        # Processed Output Textbox
+                        processed_output = gr.Textbox(
+                            label="📝 Processed Output",     # Label for the textbox
+                            lines=10,                        # Number of lines in the textbox
+                            interactive=False,               # Make the textbox read-only
+                            placeholder="Processed text will appear here..."        # Placeholder text
+                        )
+
+                        # Component to allow downloading of processed text files
+                        download_files = gr.Files(
+                            label="📥 Download Processed Files"      # Label for the download component
+                        )
+
+                        # Connect the Process Images button to its functionality
+                        process_button.click(
+                            fn=self.process_images,         # Function to call on click
+                            inputs=upload_box,              # Input is the uploaded files
+                            outputs=[processed_output, download_files],     # Outputs to update
+                        )
+
+                        # Clear Outputs Button
+                        clear_outputs_button = gr.Button(
+                            "🧹 Clear Outputs",                  # Button label
+                            elem_id="clear-button",              # HTML element ID for styling
+                            elem_classes="button-secondary")     # CSS class for secondary styling
+
+                        # Connect the Clear Outputs button to its functionality
+                        clear_outputs_button.click(
+                            fn=clear_outputs,                   # Function to call on click
+                            inputs=None,                        # No inputs required
+                            outputs=[processed_output, download_files],     # Outputs to update
+                        )
+
+
+            ########################################################
+            #  2) TAB FOR GENERATING SENTENCE-IMAGES & PROCESSING
+            ########################################################
+            # Title for the Generate & Process tab
+            with gr.Tab("Generate & Process"):
+                gr.Markdown(
+                    """
+                    <div class="tab-title">
+                        🖋️ Generate your sentence image(s) and process them
+                    </div>
+                    """,
+                    elem_id="generate-title"
+                )
+
+                with gr.Row():
+                    # Gallery to preview generated images
+                    with gr.Column(scale=2):
+                        gen_image_gallery = gr.Gallery(
+                            label="🖼️ Images Preview",          # Label for the gallery
+                            show_label=True,                    # Display the label
+                            columns=2,                          # Number of columns in the gallery
+                            elem_id="gallery2"                  # HTML element ID for styling
                         )
 
                         # ----------------------------
                         # Generate Word Image Section
                         # ----------------------------
                         with gr.Group():
-                            gr.Markdown("### 🖋️ Generate Word Image")
+                            # Subheading for the generate section
+                            gr.Markdown("### 🖋️ Generate Sentence Image")
 
+                            # Textbox for entering the sentence to generate
                             with gr.Row():
                                 word_input = gr.Textbox(
-                                    label="✏️ Enter Word",
-                                    placeholder="Type the word you want to convert to an image...",
-                                    lines=1
+                                    label="✏️ Enter Sentence",      # Label for the textbox
+                                    placeholder="Type the sentence you want to convert to an image...", # Placeholder text
+                                    lines=1                         # Number of lines in the textbox
                                 )
 
+                                # Dropdown menu to select the font for image generation
                                 font_dropdown = gr.Dropdown(
-                                    label="🎨 Select Font",
-                                    choices=self.get_available_fonts(),
+                                    label="🎨 Select Font",                  # Label for the dropdown
+                                    choices=self.get_available_fonts(),      # List of available fonts
+                                    # Default selected font
                                     value=self.get_available_fonts()[0] if self.get_available_fonts() else "arial.ttf",
-                                    interactive=True
+                                    interactive=True                         # Make the dropdown interactive
                                 )
 
-                            generate_button = gr.Button("🖨️ Generate Image", elem_id="generate-button", elem_classes="button-primary")
+                            # Button to generate the image from text
+                            generate_button = gr.Button(
+                                "🖨️ Generate Image",            # Button label
+                                elem_id="generate-button",      # HTML element ID for styling
+                                elem_classes="button-primary")  # CSS class for primary styling
+
+                            # Textbox to display the status of the generate operation
                             generate_status = gr.Textbox(
-                                label="ℹ️ Status",
-                                interactive=False,
-                                value="",
-                                lines=1
+                                label="ℹ️ Status",      # Label for the textbox
+                                interactive=False,      # Make the textbox read-only
+                                value="",               # Initial value is empty
+                                lines=1                 # Number of lines in the textbox
                             )
 
-                            # Connect Generate Button
+                            # Connect the Generate Image button to its functionality
                             generate_button.click(
-                                fn=generate_word_image_wrapper,
-                                inputs=[word_input, font_dropdown],
-                                outputs=[generate_status, image_gallery],
+                                fn=generate_word_image_wrapper,                 # Function to call on click
+                                inputs=[word_input, font_dropdown],             # Inputs from the textbox and dropdown
+                                outputs=[generate_status, gen_image_gallery],   # Outputs to update
                             )
 
-                        # Clean Button under Image Preview
-                        clean_button = gr.Button("🧼 Clean Images", elem_id="clean-button", elem_classes="button-secondary")
-                        clean_status = gr.Textbox(
-                            label="🧹 Clean Status",
-                            interactive=False,
-                            value="",
-                            lines=1,
-                            elem_id="clean_status"
+                        # Clean Images Button specific to the Generate & Process tab
+                        clean_button_2 = gr.Button(
+                            "🧼 Clean Images",                   # Button label
+                            elem_id="clean-button2",             # HTML element ID for styling
+                            elem_classes="button-secondary")     # CSS class for secondary styling
+
+                        # Textbox to display the status of the clean operation
+                        clean_status_2 = gr.Textbox(
+                            label="🧹 Clean Status",             # Label for the textbox
+                            interactive=False,                   # Make the textbox read-only
+                            value="",                            # Initial value is empty
+                            lines=1,                             # Number of lines in the textbox
+                            elem_id="clean_status2"              # HTML element ID for styling
                         )
 
-                        clean_button.click(
-                            fn=clean_uploads_and_generated_images,
-                            inputs=None,
-                            outputs=[clean_status, image_gallery],
+                        # Connect the Clean Images button to its functionality
+                        clean_button_2.click(
+                            fn=clean_uploads_and_generated_images,          # Function to call on click
+                            inputs=None,                                    # No inputs required
+                            outputs=[clean_status_2, gen_image_gallery],    # Outputs to update
                         )
 
+                    # Process Images Button for the Generate & Process tab
                     with gr.Column(scale=1):
-                        # Process Images Button
-                        process_button = gr.Button("🚀 Process Images", elem_id="process-button", elem_classes="button-primary")
-                        # Processed Output Textbox
-                        processed_output = gr.Textbox(
-                            label="📝 Processed Output", 
-                            lines=10, 
-                            interactive=False,
-                            placeholder="Processed text will appear here..."
+                        # Process Images Button (for newly generated images)
+                        process_button_2 = gr.Button(
+                            "🚀 Process Images",             # Button label
+                            elem_id="process-button2",       # HTML element ID for styling
+                            elem_classes="button-primary")   # CSS class for primary styling
+
+                        # Textbox to display the processed output
+                        processed_output_2 = gr.Textbox(
+                            label="📝 Processed Output",     # Label for the textbox
+                            lines=10,                        # Number of lines in the textbox
+                            interactive=False,               # Make the textbox read-only
+                            placeholder="Processed text will appear here..."        # Placeholder text
                         )
 
-                        # Download Processed Files
-                        download_files = gr.Files(
-                            label="📥 Download Processed Files"
+                        # Component to allow downloading of processed text files
+                        download_files_2 = gr.Files(
+                            label="📥 Download Processed Files"      # Label for the download component
                         )
 
-                        # Connect Process Button
-                        process_button.click(
-                            fn=self.process_images,
-                            inputs=upload_box,
-                            outputs=[processed_output, download_files],
+                        # Connect the Process Images button to its functionality
+                        process_button_2.click(
+                            fn=self.process_images,     # Function to call on click
+                            inputs=gen_image_gallery,   # Input is the generated image gallery
+                            outputs=[processed_output_2, download_files_2],     # Outputs to update
                         )
 
-                        # Clear Outputs Button
-                        clear_outputs_button = gr.Button("🧹 Clear Outputs", elem_id="clear-button", elem_classes="button-secondary")
-                        clear_outputs_button.click(
-                            fn=clear_outputs,
-                            inputs=None,
-                            outputs=[processed_output, download_files],
+                        # Clear Outputs Button for the Generate & Process tab
+                        clear_outputs_button_2 = gr.Button(
+                            "🧹 Clear Outputs",                  # Button label
+                            elem_id="clear-button2",             # HTML element ID for styling
+                            elem_classes="button-secondary")     # CSS class for secondary styling
+
+                        # Connect the Clear Outputs button to its functionality
+                        clear_outputs_button_2.click(
+                            fn=clear_outputs,       # Function to call on click
+                            inputs=None,            # No inputs required
+                            outputs=[processed_output_2, download_files_2],     # Outputs to update
                         )
 
-            # Manage Directories Tab
+
+            ########################################################
+            # 3) TAB FOR MANAGING DIRECTORIES
+            ########################################################
+            # Title for the Manage Directories tab
             with gr.Tab("Manage Directories"):
                 gr.Markdown(
                     """
@@ -559,22 +823,33 @@ class GradioInterface:
                     elem_id="manage-title"
                 )
                 with gr.Row():
-                    clear_button = gr.Button("🗑️ Clear Directories", elem_id="manage-clear-button", elem_classes="button-secondary")
+                    # Button to clear all directories
+                    clear_button = gr.Button(
+                        "🗑️ Clear Directories",             # Button label
+                        elem_id="manage-clear-button",      # HTML element ID for styling
+                        elem_classes="button-secondary")    # CSS class for secondary styling
+
+                    # Textbox to display the status of the directory clear operation
                     status_bar = gr.Textbox(
-                        label="✅ Status", 
-                        interactive=False, 
-                        value="", 
-                        lines=2,
+                        label="✅ Status",                  # Label for the textbox
+                        interactive=False,                  # Make the textbox read-only
+                        value="",                           # Initial value is empty
+                        lines=2,                            # Number of lines in the textbox
                         placeholder="Status messages will appear here...",
-                        elem_id="status_bar"
+                        elem_id="status_bar"                # HTML element ID for styling
                     )
+
+                # Connect the Clear Directories button to its functionality
                 clear_button.click(
-                    fn=clear_directories_wrapper,
-                    inputs=None,
-                    outputs=status_bar,
+                    fn=clear_directories_wrapper,           # Function to call on click
+                    inputs=None,                            # No inputs required
+                    outputs=status_bar,                     # Output to update
                 )
 
-            # About Tab
+            ########################################################
+            # 4) TAB FOR ABOUT INFORMATION
+            ########################################################
+            # Display information about the system using Markdown
             with gr.Tab("About"):
                 gr.Markdown(
                     """
@@ -585,7 +860,7 @@ class GradioInterface:
                         This application allows you to:
                         <ul style='list-style: none; padding: 0;'>
                             <li>📁 **Upload** image files (.png format).</li>
-                            <li>🖋️ **Generate** images from typed words with selected fonts.</li>
+                            <li>🖋️ **Generate** images from typed sentences with selected fonts.</li>
                             <li>🔍 **Process** these images through a pipeline to extract text.</li>
                             <li>📝 **View** and 📥 **Download** the processed text output (one line per image).</li>
                             <li>🧼 **Clean** uploaded and generated images.</li>
