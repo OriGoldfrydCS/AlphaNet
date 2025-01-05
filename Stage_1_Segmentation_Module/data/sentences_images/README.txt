@@ -1,1 +1,0 @@
-The size exceeds GitHub's limitation. You can generate them using sentences_to_images.py.
