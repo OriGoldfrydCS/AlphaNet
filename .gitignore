@@ -6,4 +6,5 @@ Stage_2_Classification_Module/data/
 Stage_2_Classification_Module/runs/
 Stage_2_Classification_Module/models/
 *.pyc
-
+Stage_4_Correction_Module/testing
+save_me.zip

@@ -1,35 +1,78 @@
-from transformers import T5Tokenizer, T5ForConditionalGeneration
 from difflib import SequenceMatcher
+import requests
 import re
-import torch
-
-
 class CorrectionStage:
-    """
-    This class uses a T5 model to correct recognized sentences.
-
-    It:
-    - Loads a T5 model (default is t5-large).
-    - Provides a process() method to correct a list of sentences.
-    - Cleans the corrected sentences with custom rules.
-    - Compares original and corrected sentences to see if the correction is acceptable.
-    """
-
-    def __init__(self, model_name="t5-large", max_change_threshold=0.3):
+    def __init__(self,max_change_threshold=0.2):
+        self.max_change_threshold = max_change_threshold
+        pass
+    def string_similarity(self, a, b):
         """
-        Sets up the CorrectionStage with a T5 model and a threshold for changes.
+        Calculate similarity ratio between two strings.
+        In order to find the relevent output from the response text.
+        In the String.
+        """
 
+        return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
+    def find_most_similar_sentence(self, original_text, response_text):
+        """Find the sentence in response_text most similar to original_text."""
+        # Split into sentences (handling multiple potential delimiters)
+        sentences = re.split(r'[.!?\n]+', response_text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        
+        if not sentences:
+            return response_text
+        
+        # Find the sentence with highest similarity to input
+        similarities = [(self.string_similarity(original_text, sent), sent) for sent in sentences]
+        most_similar = max(similarities, key=lambda x: x[0])
+        
+        return most_similar[1]
+
+    def autocorrect_with_ollama(self,text, model="llama2"):
+        """
+        Use Ollama to autocorrect text and return only the corrected sentence.
+        
         Args:
-            model_name (str):
-                The name of the T5 model from HuggingFace (default: "t5-large").
-            max_change_threshold (float):
-                The maximum fraction of changes allowed between the original
-                and corrected sentence (default: 0.3).
+            text (str): Text to correct
+            model (str): Ollama model to use
+        
+        Returns:
+            str: Clean corrected text
         """
-        print(f"Loading model: {model_name}")
-        self.tokenizer = T5Tokenizer.from_pretrained(model_name)                    # Create a T5 tokenizer using the given model name
-        self.model = T5ForConditionalGeneration.from_pretrained(model_name).cuda()  # Create a T5 model for conditional generation
-        self.max_change_threshold = max_change_threshold                            # Set the threshold for how much a corrected sentence can differ
+        url = "http://localhost:11434/api/generate"
+        
+        prompt = f"""Fix any spelling mistakes in this text:
+    {text}"""
+        
+        data = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False
+        }
+        
+        try:
+            response = requests.post(url, json=data)
+            response.raise_for_status()
+            result = response.json()
+            
+            # Get the raw response
+            full_response = result['response']
+            
+            # Find the most similar sentence to our input
+            corrected_text = self.find_most_similar_sentence(text, full_response)
+            
+            # Remove any remaining quotes
+            corrected_text = re.sub(r'^[\'"](.*)[\'"]$', r'\1', corrected_text.strip())
+            
+            return corrected_text
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Error connecting to Ollama: {e}")
+            return text
+        except Exception as e:
+            print(f"Error during correction: {e}")
+            return text
 
     def process(self, sentences):
         """
@@ -42,60 +85,37 @@ class CorrectionStage:
             list of str: A list of corrected sentences.
         """
         corrected_sentences = []
-
-        # Go through each sentence to generate a correction
         for sentence in sentences:
-            try:
-                # Prepare input for the T5 model
-                input_text = f"Correct the sentence: {sentence}"
+            corrected = self.autocorrect_with_ollama(sentence)
+            # corrected_sentences.append(corrected)
 
-                # Convert the prompt to tokens for T5
-                inputs = self.tokenizer.encode(input_text, return_tensors="pt").cuda()
+            cleaned_sentence = corrected
 
-                # Let T5 generate a corrected output:
-                # - max_length is a bit larger than the original sentence length.
-                # - num_beams=5 uses beam search for better results.
-                # - repetition_penalty=2.0 penalizes repeated words.
-                # - early_stopping=True stops early if all beams finish.
-                outputs = self.model.generate(
-                    inputs,
-                    max_length=len(sentence) + 20,
-                    num_beams=5,
-                    repetition_penalty=2.0,
-                    early_stopping=True,
-                )
+            change_ratio = self._calculate_change_ratio(sentence, cleaned_sentence)
 
-                # Decode the first (best) result into a string (skipping special tokens, like <s>, </s>)
-                corrected_sentence = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+            # Check if any words from the original are missing in the corrected version
+            # missing_words = self._find_missing_words(sentence, cleaned_sentence)
 
-                # Clean the corrected text using our custom rules
-                cleaned_sentence = self._clean_output(corrected_sentence)
+            # If it's too different, or the first word changed, or key words are missing, reject it
+            if change_ratio > self.max_change_threshold \
+                    or not cleaned_sentence.startswith(sentence.split()[0]):
+                # Print what got us rejected:
+                if change_ratio > self.max_change_threshold:
+                    print(f"Change ratio: got you in {change_ratio}")
+                if not cleaned_sentence.startswith(sentence.split()[0]):
+                    print(f"Original sentence: {sentence}")
+                    print(f"Cleaned sentence: got you in{cleaned_sentence}")
+                print(f"Rejected correction due to high change ratio or leading word mismatch: {cleaned_sentence}")
 
-                # Check how different the cleaned sentence is from the original
-                change_ratio = self._calculate_change_ratio(sentence, cleaned_sentence)
-
-                # Check if any words from the original are missing in the corrected version
-                missing_words = self._find_missing_words(sentence, cleaned_sentence)
-
-                # If it's too different, or the first word changed, or key words are missing, reject it
-                if change_ratio > self.max_change_threshold \
-                        or not cleaned_sentence.startswith(sentence.split()[0]) \
-                        or missing_words:
-                    print(f"Rejected correction due to high change ratio or leading word mismatch: {cleaned_sentence}")
-
-                    # If rejected, just clean the original sentence instead
-                    corrected_sentences.append(self._clean_output(sentence))
-                else:
-                    # If acceptable, store the corrected version
-                    corrected_sentences.append(cleaned_sentence)
-
-            # If there's an error, show it and just clean the original sentence instead
-            except Exception as e:
-                print(f"Error correcting sentence '{sentence}': {e}")
-                corrected_sentences.append(self._clean_output(sentence))
-
-        # Return the list of corrected (or rejected) sentences
+                # If rejected, just clean the original sentence instead
+                corrected_sentences.append(sentence)
+            else:
+                # If acceptable, store the corrected version
+                if cleaned_sentence[-1] not in ".!?":
+                    cleaned_sentence += "."
+                corrected_sentences.append(cleaned_sentence)
         return corrected_sentences
+
 
     @staticmethod
     def _calculate_change_ratio(original, corrected):
@@ -115,6 +135,7 @@ class CorrectionStage:
         # 1 - ratio means the fraction of characters that differ.
         return 1 - matcher.ratio()
 
+    #I don't really need it, see that I when I auto correct I don't use it
     def _clean_output(self, output):
         """
         Cleans the model's output by applying several regular-expression fixes.
@@ -152,7 +173,6 @@ class CorrectionStage:
             (",\.", "."),                               # If comma then period, just period
             (r"\b([A-Za-z]+)\s([A-Za-z]{1})\b", r"\1\2"),   # Join word + single letter
             (r"\b([A-Za-z]+)\s([A-Za-z]{1})\b", r"\1\2"),   # Join word + single letter
-            (r"\b(IS|ARE|WAS|WERE|BE)\s+A\b", r"\1 A"),
         ]
 
         # Go through each cleaning rule and apply it to the output string
@@ -161,17 +181,26 @@ class CorrectionStage:
 
         # Fix some specific words that may have been glued together:
         # (ISA -> IS A, AREA -> ARE A, etc.)
+        output = re.sub(r"\b(AMA)\b", "AM A", output)
         output = re.sub(r"\b(ISA)\b", "IS A", output)
         output = re.sub(r"\b(AREA)\b", "ARE A", output)
         output = re.sub(r"\b(WASA)\b", "WAS A", output)
         output = re.sub(r"\b(WEREA)\b", "WERE A", output)
+        output = re.sub(r"\b(HADA)\b", "HAD A", output)
+        output = re.sub(r"\b(HAVEA)\b", "HAVE A", output)
         output = re.sub(r"\b(ATA)\b", "AT A", output)
+        output = re.sub(r"\b(INA)\b", "IN A", output)
         output = re.sub(r"\b(GAVEA)\b", "GAVE A", output)
         output = re.sub(r"\b(NOTA)\b", "NOT A", output)
         output = re.sub(r"\b(BYA)\b", "BY A", output)
         output = re.sub(r"\b(OFA)\b", "OF A", output)
         output = re.sub(r"\b(ONA)\b", "ON A", output)
         output = re.sub(r"\b(ALSOA)\b", "ALSO A", output)
+        output = re.sub(r"\b(IMA)\b", "I AM A", output)
+        output = re.sub(r"\b(ASA)\b", "AS A", output)
+        output = re.sub(r"\b(LEAVEA)\b", "LEAVE A", output)
+        output = re.sub(r"\b(TAKEA)\b", "TAKE A", output)
+        output = re.sub(r",\.", ".", output)
 
         # If the sentence does not end with ., !, or ?, add a period
         if not output.endswith((".", "!", "?")):
@@ -218,3 +247,17 @@ class CorrectionStage:
         meaningful_missing = [word for word in missing_words if word not in trivial_words]
 
         return meaningful_missing
+#self testing code
+def main():
+    CorrectionStagel = CorrectionStage()
+
+    while True:
+        text = input("Enter text to autocorrect (or 'quit' to exit): ")
+        
+        if text.lower() == 'quit':
+            break
+            
+        print(CorrectionStagel.autocorrect_with_ollama(text))
+
+if __name__ == "__main__":
+    main()

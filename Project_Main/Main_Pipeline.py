@@ -91,7 +91,8 @@ def main(mode=0):
     vec_to_text_stage = VecToTextStage()
 
     # Initialize the correction stage, using a language model T5
-    correction_stage = CorrectionStage(model_name="t5-large")
+    # correction_stage = CorrectionStage(model_name="t5-large")
+    correction_stage = CorrectionStage()
 
     # Initialize the output stage to save the final text results
     save_to_file_stage = SaveToFileStage(output_root)
