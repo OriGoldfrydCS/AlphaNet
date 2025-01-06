@@ -89,7 +89,7 @@ class CorrectionStage:
             corrected = self.autocorrect_with_ollama(sentence)
             # corrected_sentences.append(corrected)
 
-            cleaned_sentence = corrected
+            cleaned_sentence = corrected.upper()
 
             change_ratio = self._calculate_change_ratio(sentence, cleaned_sentence)
 
