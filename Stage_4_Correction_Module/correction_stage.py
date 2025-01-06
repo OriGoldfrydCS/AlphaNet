@@ -88,7 +88,8 @@ class CorrectionStage:
         for sentence in sentences:
             corrected = self.autocorrect_with_ollama(sentence)
             # corrected_sentences.append(corrected)
-
+            
+            #technically it shouldn't be upper but because we work on uppercase letters
             cleaned_sentence = corrected.upper()
 
             change_ratio = self._calculate_change_ratio(sentence, cleaned_sentence)
