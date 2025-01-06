@@ -35,14 +35,9 @@ This modular approach makes it easy to replace or improve individual components 
 
 ## Pipeline Stages
 
-### Stage 0: Word Segmentation
-- **File/Module**: `stage_0`
-- **Purpose**: Breaks down the input image(s) into discrete words.  
-  For each sentence found in the image, this stage segments it into separate word images.
-
 ### Stage 1: Character Segmentation
 - **File/Module**: `stage_1`
-- **Purpose**: Takes the word images from Stage 0 and further segments them into individual character images.
+- **Purpose**: Takes the Sentence images and breakes them to single words, and then to a single charchters for the next stage.
 
 ### Stage 2: Character Classification
 - **File/Module**: `stage_2`

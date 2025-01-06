@@ -29,21 +29,14 @@ class CorrectionStage:
         
         return most_similar[1]
 
-    def autocorrect_with_ollama(self,text, model="llama2"):
+    def autocorrect_with_ollama(self, text, model="llama2"):
         """
         Use Ollama to autocorrect text and return only the corrected sentence.
-        
-        Args:
-            text (str): Text to correct
-            model (str): Ollama model to use
-        
-        Returns:
-            str: Clean corrected text
         """
         url = "http://localhost:11434/api/generate"
         
-        prompt = f"""Fix any spelling mistakes in this text:
-    {text}"""
+        prompt = f"""Fix any spelling mistakes in this text and response with the corrected version:
+        {text} """
         
         data = {
             "model": model,
@@ -51,22 +44,24 @@ class CorrectionStage:
             "stream": False
         }
         
+        flag = len(text.split()) == 1
+        
         try:
             response = requests.post(url, json=data)
             response.raise_for_status()
             result = response.json()
             
-            # Get the raw response
             full_response = result['response']
-            
-            # Find the most similar sentence to our input
-            corrected_text = self.find_most_similar_sentence(text, full_response)
-            
-            # Remove any remaining quotes
+            if flag:
+                match = re.search(r'The correct spelling is "(.*?)"', full_response)
+                cleaned_sentence = match.group(1) if match else full_response.strip()
+            else:
+                cleaned_sentence = full_response.strip()
+            corrected_text = self.find_most_similar_sentence(text, cleaned_sentence)
             corrected_text = re.sub(r'^[\'"](.*)[\'"]$', r'\1', corrected_text.strip())
             
             return corrected_text
-            
+                
         except requests.exceptions.RequestException as e:
             print(f"Error connecting to Ollama: {e}")
             return text
@@ -84,23 +79,26 @@ class CorrectionStage:
         Returns:
             list of str: A list of corrected sentences.
         """
+        resistence = self.max_change_threshold  
         corrected_sentences = []
         for sentence in sentences:
-            corrected = self.autocorrect_with_ollama(sentence)
-            # corrected_sentences.append(corrected)
+            #check how many words there are in the sentence
+            words = sentence.split()
             
+            #if it's only a single word, we can be less strict
+            if len(words) == 1:
+                resistence = 0.5
+
+            corrected = self.autocorrect_with_ollama(sentence)
+
             #technically it shouldn't be upper but because we work on uppercase letters
+            #but the model is trained to output things in the right case.
             cleaned_sentence = corrected.upper()
-
             change_ratio = self._calculate_change_ratio(sentence, cleaned_sentence)
+        
 
-            # Check if any words from the original are missing in the corrected version
-            # missing_words = self._find_missing_words(sentence, cleaned_sentence)
-
-            # If it's too different, or the first word changed, or key words are missing, reject it
-            if change_ratio > self.max_change_threshold \
-                    or not cleaned_sentence.startswith(sentence.split()[0]):
-                # Print what got us rejected:
+            # If it's too different, or the first word changed while it, or key words are missing, reject it
+            if change_ratio > resistence:                # Print what got us rejecte
                 if change_ratio > self.max_change_threshold:
                     print(f"Change ratio: got you in {change_ratio}")
                 if not cleaned_sentence.startswith(sentence.split()[0]):
@@ -248,6 +246,7 @@ class CorrectionStage:
         meaningful_missing = [word for word in missing_words if word not in trivial_words]
 
         return meaningful_missing
+
 #self testing code
 def main():
     CorrectionStagel = CorrectionStage()
@@ -257,8 +256,8 @@ def main():
         
         if text.lower() == 'quit':
             break
-            
+        # l = [text]
+        # print(CorrectionStagel.process(l))
         print(CorrectionStagel.autocorrect_with_ollama(text))
-
 if __name__ == "__main__":
     main()
