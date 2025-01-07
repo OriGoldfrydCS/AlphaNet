@@ -34,7 +34,27 @@
 This modular approach makes it easy to replace or improve individual components without affecting the rest of the pipeline. AlphaNet stands out by combining modularity with LLM-powered corrections, ensuring high accuracy in both structured and unstructured text.
 
 ---
+# Model Workflow Diagram
+The following diagram illustrates the workflow of the model:
 
+[![Model Workflow Diagram](readme_images/model_structure.png)](readme_images/model_structure.png)
+
+1. **Segmentation Module**:  
+   - Takes a `.png` input, segments the characters in the image, and outputs them sequentially.
+
+2. **Classification Module**:  
+   - Processes the segmented characters and generates their corresponding numeric representations (e.g., `[4, 23, 0, 11, 15, 11, 4]`).
+
+3. **Conversion Module**:  
+   - Converts the numeric representations into their text equivalent, identifying and marking any errors.
+
+4. **Correction Module**:  
+   - Corrects errors in the text (e.g., replacing incorrect characters, as shown with the red **N**).
+
+5. **Output**:  
+   - Produces the corrected text, ensuring it matches the expected input.
+
+---
 ## Pipeline Stages
 
 ### Stage 1: Character Segmentation
