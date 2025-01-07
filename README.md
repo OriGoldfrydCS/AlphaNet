@@ -2,34 +2,36 @@
 
 **AlphaNet** is an end-to-end pipeline that takes images containing text and outputs a textual representation of that content. The project is divided into six stages, each responsible for a specific part of the image-to-text process, and orchestrated by a single `main_pipeline.py` script.
 
+---
+
 ## Table of Contents
-1. [Overview](#overview)  
-2. [Pipeline Stages](#pipeline-stages)  
-   - [Stage 1: Sentence Segmentation](#stage-1-character-segmentation)  
-   - [Stage 2: Character Classification](#stage-2-character-classification)  
-   - [Stage 3: Vector-to-Text](#stage-3-vector-to-text)  
-   - [Stage 4: Correction Module](#stage-4-correction-module)  
-   - [Stage 5: Output Module](#stage-5-output-module)  
-3. [Installation](#installation)  
-4. [Usage](#usage)  
+1. [Overview](#overview)
+2. [Pipeline Stages](#pipeline-stages)
+   - [Stage 1: Sentence Segmentation](#stage-1-character-segmentation)
+   - [Stage 2: Character Classification](#stage-2-character-classification)
+   - [Stage 3: Vector-to-Text](#stage-3-vector-to-text)
+   - [Stage 4: Correction Module](#stage-4-correction-module)
+   - [Stage 5: Output Module](#stage-5-output-module)
+3. [Installation](#installation)
+4. [Usage](#usage)
 5. [Roadmap](#roadmap)
-6. [Images](#iamges)
+6. [System Interfaces and Visual Representation](#system-interfaces-and-visual-representation)
 7. [License](#license)
 
 ---
 
 ## Overview
 
-AtoZ is designed to **convert images into accurate text** by breaking down the recognition task into multiple stages:
+**AlphaNet** is designed to **convert images into accurate text** by breaking down the recognition task into multiple stages:
 
-1. **Segmenting images into words**  
-2. **Extracting characters from these words**  
-3. **Classifying each character**  
-4. **Converting those classifications into text**  
-5. **Correcting the recognized text** using a Large Language Model (LLM)  
+1. **Segmenting images into words**
+2. **Extracting characters from these words**
+3. **Classifying each character**
+4. **Converting those classifications into text**
+5. **Correcting the recognized text** using a Large Language Model (LLM)
 6. **Outputting** the final result
 
-This modular approach makes it easy to replace or improve individual components without affecting the rest of the pipeline.
+This modular approach makes it easy to replace or improve individual components without affecting the rest of the pipeline. AlphaNet stands out by combining modularity with LLM-powered corrections, ensuring high accuracy in both structured and unstructured text.
 
 ---
 
@@ -37,7 +39,7 @@ This modular approach makes it easy to replace or improve individual components 
 
 ### Stage 1: Character Segmentation
 - **File/Module**: `stage_1`
-- **Purpose**: Takes the Sentence images and breakes them to single words, and then to a single charchters for the next stage.
+- **Purpose**: Takes sentence images, breaks them into words, and further segments these into single characters for the next stage.
 
 ### Stage 2: Character Classification
 - **File/Module**: `stage_2`
@@ -59,15 +61,21 @@ This modular approach makes it easy to replace or improve individual components 
 
 ## Installation
 
+### Prerequisites
+1. Python 3.8 or later.
+2. pip (Python package manager).
+3. Internet connection for downloading LLM models.
+
+### Steps
 1. **Clone this repository**:
    ```bash
-   git clone https://github.com/your-username/AtoZ.git
-   cd AtoZ
+   git clone https://github.com/your-username/AlphaNet.git
+   cd AlphaNet
    ```
 2. **Create and activate a virtual environment**:
     ```bash
     python -m venv venv
-    source venv/bin/activate.terminal    # Linux/MacOS  
+    source venv/bin/activate    # Linux/MacOS  
     venv\Scripts\activate       # Windows
     ```
 
@@ -79,10 +87,8 @@ This modular approach makes it easy to replace or improve individual components 
    ```bash
    curl -fsSL https://ollama.com/install.sh | sh #for linux
    ```
-   or follow the link
-   ```
-   https://ollama.com/download/windows
-   ```
+   or follow the link and download from [Ollama's website](https://ollama.com/download/windows).
+
 5. **Install LLama2**
    ```bash
    ollama serve&
@@ -118,60 +124,6 @@ To launch the application, run:
 python Project_Main/run_gui.py
 ```
 
-## Core Features
-
-### Upload & Process
-Process your existing image files:
-- Upload images through the drag-and-drop interface
-- Support for PNG image format
-- Preview uploaded images before processing
-- Process multiple images in batch
-- Download processed text output (one line per image)
-- Clean uploaded images when needed
-- Monitor process status through the status panel
-
-### Generate & Process
-Create and process custom text images:
-- Type sentences to convert into images
-- Select from available fonts
-- Generate images from your text input
-- Preview generated images before processing
-- Process generated images to extract text
-- Download processed text results
-- Clean generated images as needed
-- Track generation and processing status
-
-### Manage Directories
-System maintenance and cleanup:
-- Clear all directories to reset the system
-- View cleanup status in real-time
-- Maintain system performance through regular cleanup
-- Reset the system to its initial state when needed
-
-### About
-The system provides:
-- Upload and processing of PNG image files
-- Text-to-image generation with font selection
-- Image-to-text processing pipeline
-- File management and system cleanup
-- Status monitoring and feedback
-- Download capabilities for processed results
-
-## Tips for Optimal Use
-
-- Use PNG format for image uploads
-- Clear directories regularly through the Manage Directories tab
-- Monitor the status panel for operation feedback
-- Use the Clean Images function after processing to maintain system performance
-- Download processed files before clearing directories
-- Keep the application updated for optimal performance
-
-## Technical Notes
-
-- Built with Gradio interface
-- API access available for programmatic use
-- Modern interface design for improved user experience
- 
 # Roadmap📍
 - [x] Create an ocr pipeline from a full sentence to text
 - [x] Support panctuation marks
@@ -239,3 +191,4 @@ These visual interfaces exemplify the modular and user-centric design of AlphaNe
 
 # License
 
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
