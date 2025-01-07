@@ -3,7 +3,7 @@ import requests
 import re
 
 class CorrectionStage:
-    def __init__(self,max_change_threshold=0.05):
+    def __init__(self,max_change_threshold=0.10):
         self.max_change_threshold = max_change_threshold
         pass
     def string_similarity(self, a, b):
@@ -45,8 +45,9 @@ class CorrectionStage:
             "cuda": True 
         }
         
+        # Check if the text is a single word
         flag = len(text.split()) == 1
-        
+            
         try:
             response = requests.post(url, json=data)
             response.raise_for_status()
@@ -61,7 +62,7 @@ class CorrectionStage:
             corrected_text = self.find_most_similar_sentence(text, cleaned_sentence)
             corrected_text = re.sub(r'^[\'"](.*)[\'"]$', r'\1', corrected_text.strip())
             
-            corrected_text = self._clean_output(self.find_most_similar_sentence(text, cleaned_sentence))
+            corrected_text = self._clean_output(self.find_most_similar_sentence(text, cleaned_sentence), flag)
             
             return corrected_text
                 
@@ -138,21 +139,30 @@ class CorrectionStage:
         return 1 - matcher.ratio()
 
 
-    def _clean_output(self, output):
+    def _clean_output(self, output, flag):
         """
         Cleans the model's output with general corrections only.
         """
         # General corrections only ##########
         # Remove leading and trailing quotation marks
-        output = re.sub(r'^["\']+|["\']+$', '', output)
-        
+        output = re.sub(r'^THE CORRECT SPELLING IS "', '', output)
+        output = re.sub(r'"', '', output)
+
         # Remove extra spaces
         output = re.sub(r'\s+', ' ', output).strip()
-        
+                
         # Ensure sentence ends with a period, exclamation, or question mark
-        if not output.endswith((".", "!", "?")):
-            output += "."
+        if flag == 0:
+            if not output.endswith((".", "!", "?")):
+                output += "."
         
+        if flag == 1:
+            # Only add a period if the output is more than one word or if it already ends with punctuation
+            if " " in output or output.endswith((".", "!", "?")):
+                pass  
+            else:
+                output += "."
+                        
         # Convert the entire sentence to uppercase
         output = output.upper()
 
