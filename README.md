@@ -62,34 +62,51 @@ This modular approach makes it easy to replace or improve individual components 
 ## Installation
 
 ### Prerequisites
-1. Python 3.8 or later.
+1. Python 3.12 or later.
 2. pip (Python package manager).
 3. Internet connection for downloading LLM models.
 
 ### Steps
-1. **Clone this repository**:
+
+1. **Install Git LFS (Large File Storage)**  
+   Git LFS is required to handle large files, such as the pre-existing dataset used in this project. To install Git LFS, run the following command:
+
+   ```bash
+   git lfs install
+   ```
+   **Note:** If you choose to use the pre-existing dataset, be aware that it is large and may take some time to download.
+
+   **Note2:** If you skipped this part and want to still get the dataset, write the following command
+   ```bash
+   git lfs install #to install the program
+   cd into/relevent/path #cd to the right workign directory (the project)
+   git lfs pull #to pull the database (takes time)
+   ```
+
+2. **Clone this repository**:
    ```bash
    git clone https://github.com/your-username/AlphaNet.git
    cd AlphaNet
+   git lfs pull #if not already done automatcally
    ```
-2. **Create and activate a virtual environment**:
+3. **Create and activate a virtual environment**:
     ```bash
     python -m venv venv
     source venv/bin/activate    # Linux/MacOS  
     venv\Scripts\activate       # Windows
     ```
 
-3. **Install the requerirments**:
+4. **Install the requerirments**:
    ```bash
    pip install -r requirements.txt
    ```
-4. **Install Ollama**
+5. **Install Ollama**
    ```bash
    curl -fsSL https://ollama.com/install.sh | sh #for linux
    ```
    or follow the link and download from [Ollama's website](https://ollama.com/download/windows).
 
-5. **Install LLama2**
+6. **Install LLama2**
    ```bash
    ollama serve&
    ollama pull llama2
