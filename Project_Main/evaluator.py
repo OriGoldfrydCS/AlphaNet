@@ -1,9 +1,10 @@
 import pandas as pd
 import os
+from difflib import SequenceMatcher
 
 class Evaluation:
     """
-    This class handles the evaluation process for the pipeline.
+    This class handles the evaluation process for the pipeline using character-level similarity.
     """
     def __init__(self, ground_truth_csv):
         self.overall_correct = 0
@@ -22,40 +23,29 @@ class Evaluation:
 
     def evaluate_accuracy(self, predicted_sentence, ground_truth_sentence):
         """
-        Evaluate the accuracy by comparing each predicted letter with the ground truth.
+        Evaluate the accuracy using SequenceMatcher ratio.
         """
-        correct = 0
+        # Compute similarity ratio (ignoring case and extra whitespace)
+        predicted_sentence = predicted_sentence.strip().upper()
+        ground_truth_sentence = ground_truth_sentence.strip().upper()
+        
+        similarity = SequenceMatcher(None, predicted_sentence, ground_truth_sentence).ratio()
+        
+        # Calculate the number of correct letters based on ratio
+        correct = int(similarity * len(ground_truth_sentence))
         total = len(ground_truth_sentence)
+
+        # Generate mismatches using a character-wise comparison
         mismatches = []
-        used_indices = set()  # Track ground truth indices already matched
-
-        for i, predicted_letter in enumerate(predicted_sentence):
-            if i < total and predicted_letter == ground_truth_sentence[i]:
-                # Matches the current ground truth letter
-                correct += 1
-                used_indices.add(i)
-            else:
-                # Check for forward match
-                matched = False
-                for j in range(i + 1, total):  # Look ahead in the ground truth sentence
-                    if j not in used_indices and predicted_letter == ground_truth_sentence[j]:
-                        correct += 1
-                        used_indices.add(j)
-                        matched = True
-                        break
-
-                if not matched:
-                    # Record mismatch details
-                    current_gt_letter = ground_truth_sentence[i] if i < total else "N/A"
-                    next_gt_letters = ground_truth_sentence[i + 1:] if i + 1 < total else "N/A"
-                    mismatches.append({
-                        "position": i + 1,
-                        "predicted_letter": predicted_letter,
-                        "current_gt_letter": current_gt_letter,
-                        "next_gt_letters": next_gt_letters,
-                        "type": "Mismatch"
-                    })
-
+        for i, (p, g) in enumerate(zip(predicted_sentence, ground_truth_sentence)):
+            if p != g:
+                mismatches.append({
+                    "position": i + 1,
+                    "predicted_letter": p,
+                    "ground_truth_letter": g,
+                    "type": "Mismatch"
+                })
+                
         return correct, total, mismatches
 
     def update_metrics(self, predicted_sentence, image_path):
@@ -64,6 +54,8 @@ class Evaluation:
         """
         image_name = os.path.basename(image_path)  # Extract the filename (e.g., sentence_1.png)
         ground_truth_sentence = self.ground_truth.get(image_name, "")
+        
+        # Evaluate using the modified method
         correct, total, mismatches = self.evaluate_accuracy(predicted_sentence, ground_truth_sentence)
         self.overall_correct += correct
         self.overall_total += total
