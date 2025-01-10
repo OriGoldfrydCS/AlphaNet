@@ -1,12 +1,8 @@
 Project_Main/project_dirs
 AtoZ-py3.12
-Stage_1_Segmentation_Module/data/letters_images
-Stage_1_Segmentation_Module/data/sentences_images
 Stage_1_Segmentation_Module/evaluate_model/sentences_output_for_evaluate
-Stage_2_Classification_Module/data/*.png
 Stage_2_Classification_Module/data/*.csv 
 Stage_2_Classification_Module/runs/
 Stage_2_Classification_Module/models/
 *.pyc
 Stage_4_Correction_Module/testing
-Stage_2_Classification_Module/data

@@ -121,6 +121,10 @@ The following diagram illustrates the workflow of the model:
    ollama serve&
    ollama pull llama2
    ```
+7. **Install VIT model**
+   ```bash
+   https://msmailarielac.sharepoint.com/:f:/r/sites/AlphaNet/Shared%20Documents/Vit_models?csf=1&web=1&e=Wb7Hpz
+   ```
 ---
 # Usage
 
