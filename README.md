@@ -162,10 +162,10 @@ python Project_Main/run_gui.py
 ```
 
 # Roadmap📍
-- [x] Create an ocr pipeline from a full sentence to text
+- [x] Create an OCR pipeline for converting full sentences to text
 - [x] Support panctuation marks
 - [ ] Improving Segentation
-- [ ] Be able to perform the whole pipeline on handwritten paragraphs
+- [ ] Adjust the pipeline to **IAM Handwritten Forms Dataset**
 - [ ] Multi-language Support
   - [ ] Chinese
   - [ ] Spanish
