@@ -87,16 +87,20 @@ The following diagram illustrates the workflow of the model:
 3. Internet connection for downloading LLM models.
 
 ### Steps
-
-1. **Classification DataSet**  
-   Example Dataset: Preprocessed datasets are available [here](https://msmailarielac.sharepoint.com/:u:/r/sites/AlphaNet/Shared%20Documents/DataSet-Classifciation/DataSet.zip?csf=1&web=1&e=uOYwca)
-
-2. **Clone this repository**:
+1. **Clone this repository**:
    ```bash
    git clone https://github.com/your-username/AlphaNet.git
    cd AlphaNet
    git lfs pull #if not already done automatcally
    ```
+2. **Classification DataSet**  
+   Example Dataset: Preprocessed datasets are available [here](https://msmailarielac.sharepoint.com/:u:/r/sites/AlphaNet/Shared%20Documents/DataSet-Classifciation/DataSet.zip?csf=1&web=1&e=uOYwca)
+   ```bash
+   unzip Downloaded/path/DataSet.zip #
+   mv -r Downloaded/path/Dataset Stage_2_Classification_Module/DataSet # or path/to/AlphaNet/Stage_2_Classification_Module
+   ```
+
+
 3. **Create and activate a virtual environment**:
     ```bash
     python -m venv venv
@@ -121,6 +125,9 @@ The following diagram illustrates the workflow of the model:
    ```
 7. **Install VIT model**
    VIT Model: Available for download [here.](https://msmailarielac.sharepoint.com/:f:/r/sites/AlphaNet/Shared%20Documents/Vit_models?csf=1&web=1&e=Wb7Hpz)
+   ```bash
+   mv Downloaded/path/best_model_ViT_2025-01-01.pth Stage_2_Classification_Module/models/vit_models/best_model_ViT_2025-01-01.pth # or path/to/AlphaNet/Stage_2_Classification_Module
+   ```
 ---
 # Usage
 
