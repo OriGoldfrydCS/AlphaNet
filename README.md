@@ -88,10 +88,8 @@ The following diagram illustrates the workflow of the model:
 
 ### Steps
 
-1. **Install the following directory**  
-   ```bash
-   https://msmailarielac.sharepoint.com/:u:/r/sites/AlphaNet/Shared%20Documents/DataSet-Classifciation/DataSet.zip?csf=1&web=1&e=uOYwca
-   ```
+1. **Classification DataSet**  
+   Example Dataset: Preprocessed datasets are available [here](https://msmailarielac.sharepoint.com/:u:/r/sites/AlphaNet/Shared%20Documents/DataSet-Classifciation/DataSet.zip?csf=1&web=1&e=uOYwca)
 
 2. **Clone this repository**:
    ```bash
@@ -122,9 +120,7 @@ The following diagram illustrates the workflow of the model:
    ollama pull llama2
    ```
 7. **Install VIT model**
-   ```bash
-   https://msmailarielac.sharepoint.com/:f:/r/sites/AlphaNet/Shared%20Documents/Vit_models?csf=1&web=1&e=Wb7Hpz
-   ```
+   VIT Model: Available for download [here.](https://msmailarielac.sharepoint.com/:f:/r/sites/AlphaNet/Shared%20Documents/Vit_models?csf=1&web=1&e=Wb7Hpz)
 ---
 # Usage
 
