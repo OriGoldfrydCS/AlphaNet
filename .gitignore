@@ -1,0 +1,5 @@
+Project_Main/project_dirs
+Stage_1_Segmentation_Module/evaluate_model/sentences_output_for_evaluate
+Stage_2_Classification_Module/data/*.csv 
+Stage_2_Classification_Module/runs/
+*.pyc
