@@ -9,3 +9,4 @@ Stage_2_Classification_Module/runs/
 Stage_2_Classification_Module/models/
 *.pyc
 Stage_4_Correction_Module/testing
+Stage_2_Classification_Module/data
