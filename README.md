@@ -88,19 +88,9 @@ The following diagram illustrates the workflow of the model:
 
 ### Steps
 
-1. **Install Git LFS (Large File Storage)**  
-   Git LFS is required to handle large files, such as the pre-existing dataset used in this project. To install Git LFS, run the following command:
-
+1. **Install the following directory**  
    ```bash
-   git lfs install
-   ```
-   **Note:** If you choose to use the pre-existing dataset, be aware that it is large and may take some time to download.
-
-   **Note2:** If you skipped this part and want to still get the dataset, write the following command
-   ```bash
-   git lfs install #to install the program
-   cd into/relevent/path #cd to the right workign directory (the project)
-   git lfs pull #to pull the database (takes time)
+   https://msmailarielac.sharepoint.com/:u:/r/sites/AlphaNet/Shared%20Documents/DataSet-Classifciation/DataSet.zip?csf=1&web=1&e=uOYwca
    ```
 
 2. **Clone this repository**:
