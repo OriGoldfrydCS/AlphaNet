@@ -140,9 +140,9 @@ python Project_Main/run_gui.py
 ```
 
 This command will create a server,
-in which you can access from your browser using the following url,
+in which you can access from your browser using the following url:
 ```
-   http://127.0.0.1:7860
+http://127.0.0.1:7860
 ```
 Also you can run the pipeline without gui, use the following command:
 ```bash
